@@ -7,14 +7,14 @@ pub struct Password {
 }
 
 #[derive(Serialize)]
-pub struct Response {
+pub struct Response<T> {
     pub code: i32,
     pub msg: String,
-    pub data: String
+    pub data: T
 }
 
-impl Response {
-    pub fn success(data: String) -> Response {
+impl<T> Response<T> {
+    pub fn success(data: T) -> Self {
         Response {
             code: 0,
             msg: "success".to_string(),
@@ -22,7 +22,7 @@ impl Response {
         }
     }
 
-    pub fn fail(msg: String) -> Response {
+    pub fn fail(msg: String) -> Self {
         Response {
             code: 1,
             msg: msg,

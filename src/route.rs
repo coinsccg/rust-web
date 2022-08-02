@@ -24,11 +24,11 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
     );
 }
 
-pub async fn get_wallet() -> Json<Response> {
+pub async fn get_wallet() -> Json<Response<String>> {
     Json(Response::success(constant::WALLET.to_string()))
 }
 
-pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response> {
+pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response<String>> {
     let pool = pool.get_ref();
     let payload = std::str::from_utf8(body.as_ref()).expect("payload error");
     if let Ok(user) = serde_json::from_str::<Password>(payload) {
@@ -43,7 +43,7 @@ pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response> {
                 };
             }
             Err(e) => {
-                return Json(Response::fail("请输入正确的用户名或密码".to_string()));
+                return Json(Response::<String>::fail("请输入正确的用户名或密码".to_string()));
             }
         }
 
@@ -53,9 +53,9 @@ pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response> {
             .as_secs();
         let claims = Claims::new(1, timestamp);
         let token = encode_jwt(claims).unwrap();
-        Json(Response::success(token))
+        Json(Response::<String>::success(token))
     } else {
-        Json(Response::fail("请输入正确的用户名或密码".to_string()))
+        Json(Response::<String>::fail("请输入正确的用户名或密码".to_string()))
     }
 
 }
