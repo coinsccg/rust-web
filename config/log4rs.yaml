@@ -1,0 +1,13 @@
+appenders:
+  stdout:
+    kind: console
+  file:
+    kind: file
+    path: "log/info.log"
+    encoder:
+      pattern: "[File] {d} - {m}{n}"
+root:
+  level: info
+  appenders:
+    - file
+    - stdout

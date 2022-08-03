@@ -3,11 +3,14 @@ use actix_web::{web::{self, Json, Data, Path, Payload, Bytes}, Result, route, Ht
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::{mysql::MySqlPool, query, query_as, Row};
 use std::time::{Duration, SystemTime};
+use actix_web::dev::Service;
 use serde::Serialize;
 use serde_json;
 use crate::constant;
-use crate::types::{Info, Password, Response};
-use crate::middleware::{Claims, encode_jwt, bearer_validator};
+use crate::errors::Error;
+use crate::models::{Info, Password, Response, Point, ActiveUser};
+use crate::auth::bearer_validator;
+use crate::handlers::{login_handler, add_point_handler,active_user_handler};
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -18,7 +21,16 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 .service(web::scope("/login").route("", web::post().to(login)))
                 .service(web::scope("")
                     .wrap(HttpAuthentication::bearer(bearer_validator))
-                    .route("/addPoint", web::get().to(add_point))
+                    .wrap_fn(|req, srv|{
+                        let fut = srv.call(req);
+                        async {
+                            let mut res = fut.await?;
+                            res.headers_mut().insert("aa".as_str(), "ff".as_str());
+                            Ok(res)
+                        }
+                    })
+                    .route("/active", web::post().to(activate_user))
+                    .route("/add_point", web::post().to(add_point))
                 )
             )
     );
@@ -29,41 +41,78 @@ pub async fn get_wallet() -> Json<Response<String>> {
 }
 
 pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response<String>> {
-    let pool = pool.get_ref();
-    let payload = std::str::from_utf8(body.as_ref()).expect("payload error");
-    if let Ok(user) = serde_json::from_str::<Password>(payload) {
-        let rows = query(
-            "SELECT id FROM users WHERE username = ? AND password = ?",
-        ).bind(user.username).bind(user.password).fetch_one(pool).await;
-
-        match rows {
-            Ok(rs) => {
-                if let Ok(id) = rs.try_get::<i64, _>("id") {
-                    println!("{:?}", id);
-                };
-            }
-            Err(e) => {
-                return Json(Response::<String>::fail("请输入正确的用户名或密码".to_string()));
+    let payload = std::str::from_utf8(body.as_ref()).map_err(|_|Error::RequestBadError);
+    match payload {
+        Ok(p) => {
+            match serde_json::from_str::<Password>(p) {
+                Ok(user) => {
+                    match login_handler(pool.get_ref(), user).await {
+                        Ok(token) => {
+                            return Json(Response::success(token));
+                        }
+                        Err(e) => {
+                            return Json(Response::fail(e.to_string(), String::new()));
+                        }
+                    }
+                }
+                Err(e) => {
+                    return Json(Response::fail(e.to_string(), String::new()));
+                }
             }
         }
-
-        let timestamp = SystemTime::now()
-            .add(Duration::from_secs(1200))
-            .duration_since(SystemTime::UNIX_EPOCH).unwrap()
-            .as_secs();
-        let claims = Claims::new(1, timestamp);
-        let token = encode_jwt(claims).unwrap();
-        Json(Response::<String>::success(token))
-    } else {
-        Json(Response::<String>::fail("请输入正确的用户名或密码".to_string()))
+        Err(e) => Json(Response::fail(e.to_string(), String::new()))
     }
-
 }
 
-pub async fn add_point(info: Json<Info>) -> Result<String> {
+pub async fn activate_user(pool: Data<MySqlPool>, body: Bytes, head: HttpRequest) -> Json<Response<String>> {
+    println!("{:?}", head);
+    let payload = std::str::from_utf8(body.as_ref()).map_err(|_|Error::RequestBadError);
+    match payload {
+        Ok(p) => {
+            match serde_json::from_str::<ActiveUser>(p) {
+                Ok(active) => {
+                    match active_user_handler(pool.get_ref(), active.parent, active.owner).await {
+                        Ok(_) => {
+                            return Json(Response::success(String::new()))
+                        }
+                        Err(e) => {
+                            return Json(Response::fail(e.to_string(), String::new()))
+                        }
+                    }
+                }
+                Err(e) => {
+                    return Json(Response::fail(e.to_string(), String::new()))
+                }
+            }
+        }
+        Err(e) => {
+            return Json(Response::fail(e.to_string(), String::new()))
+        }
+    }
+}
 
-    Ok(format!(
-        "Welcome home {}, user_id {}!!",
-        info.friend, info.user_id
-    ))
+pub async fn add_point(pool: Data<MySqlPool>, body: Bytes) -> Json<Response<String>> {
+    let payload = std::str::from_utf8(body.as_ref()).map_err(|_|Error::RequestBadError);
+    match payload {
+        Ok(p) => {
+            match serde_json::from_str::<Point>(p) {
+                Ok(point) => {
+                    match add_point_handler(pool.get_ref(), point.owner, point.point).await {
+                        Ok(_) => {
+                            return Json(Response::success(String::new()))
+                        }
+                        Err(e) => {
+                            return Json(Response::fail(e.to_string(), String::new()))
+                        }
+                    }
+                }
+                Err(e) => {
+                    return Json(Response::fail(e.to_string(), String::new()))
+                }
+            }
+        }
+        Err(e) => {
+            return Json(Response::fail(e.to_string(), String::new()))
+        }
+    }
 }

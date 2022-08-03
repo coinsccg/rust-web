@@ -6,6 +6,19 @@ pub struct Password {
     pub password: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct Point {
+    pub owner: String,
+    pub point: i64,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ActiveUser {
+    pub parent: String,
+    pub owner: String,
+}
+
+
 #[derive(Serialize)]
 pub struct Response<T> {
     pub code: i32,
@@ -22,11 +35,11 @@ impl<T> Response<T> {
         }
     }
 
-    pub fn fail(msg: String) -> Self {
+    pub fn fail(msg: String, data: T) -> Self {
         Response {
             code: 1,
             msg: msg,
-            data: "".to_string(),
+            data: data,
         }
     }
 }
