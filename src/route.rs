@@ -1,8 +1,10 @@
+use std::fmt::Display;
 use std::ops::Add;
-use actix_web::{web::{self, Json, Data, Path, Payload, Bytes}, Result, route, HttpRequest};
+use actix_web::{web::{self, Json, Data, Path, Bytes}, Result, route, HttpRequest};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::{mysql::MySqlPool, query, query_as, Row};
 use std::time::{Duration, SystemTime};
+use actix_http::HttpMessage;
 use actix_web::dev::Service;
 use serde::Serialize;
 use serde_json;
@@ -11,6 +13,9 @@ use crate::errors::Error;
 use crate::models::{Info, Password, Response, Point, ActiveUser};
 use crate::auth::bearer_validator;
 use crate::handlers::{login_handler, add_point_handler,active_user_handler};
+
+use actix_web::http::header::{COOKIE, HeaderValue};
+
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -21,14 +26,15 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                 .service(web::scope("/login").route("", web::post().to(login)))
                 .service(web::scope("")
                     .wrap(HttpAuthentication::bearer(bearer_validator))
-                    .wrap_fn(|req, srv|{
-                        let fut = srv.call(req);
-                        async {
-                            let mut res = fut.await?;
-                            res.headers_mut().insert("aa".as_str(), "ff".as_str());
-                            Ok(res)
-                        }
-                    })
+                    // response中间件
+                    // .wrap_fn(|req, srv|{
+                    //     let fut = srv.call(req);
+                    //     async {
+                    //         let mut res = fut.await?;
+                    //         res.headers_mut().insert(COOKIE, HeaderValue::from(19));
+                    //         Ok(res)
+                    //     }
+                    // })
                     .route("/active", web::post().to(activate_user))
                     .route("/add_point", web::post().to(add_point))
                 )
@@ -65,7 +71,7 @@ pub async fn login(pool: Data<MySqlPool>, body: Bytes) -> Json<Response<String>>
 }
 
 pub async fn activate_user(pool: Data<MySqlPool>, body: Bytes, head: HttpRequest) -> Json<Response<String>> {
-    println!("{:?}", head);
+    println!("{:?}", head.headers().get("authorization"));
     let payload = std::str::from_utf8(body.as_ref()).map_err(|_|Error::RequestBadError);
     match payload {
         Ok(p) => {
