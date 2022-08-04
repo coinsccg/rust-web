@@ -55,7 +55,7 @@ pub async fn activate_user_handler(pool: Data<MySqlPool>, body: Bytes, head: Htt
     println!("{:?}", head.headers().get("authorization"));
 
     let result = parse_body::<ActiveUser>(&body)?;
-    if result.parent.len() != 42 && result.owner != 42 {
+    if result.parent.len() != 42 && result.owner.len() != 42 {
         return Err(Error::ParamInvalidError);
     }
 
