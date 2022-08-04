@@ -25,7 +25,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                         let fut = srv.call(req);
                         async {
                             let mut res = fut.await?;
-                            res.headers_mut().insert("aa".as_str(), "ff".as_str());
+                            res.headers_mut().insert("aa", "ff");
                             Ok(res)
                         }
                     })
