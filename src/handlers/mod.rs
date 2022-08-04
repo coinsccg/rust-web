@@ -1,4 +1,5 @@
 pub mod user;
+pub mod filter;
 
 pub use user::login_handler;
 pub use user::get_wallet_handler;

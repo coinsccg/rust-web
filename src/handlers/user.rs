@@ -58,6 +58,7 @@ pub async fn activate_user_handler(pool: Data<MySqlPool>, body: Bytes, head: Htt
     if result.parent.len() != 42 && result.owner != 42 {
         return Err(Error::ParamInvalidError);
     }
+
     match active_user_service(pool.get_ref(), result.parent, result.owner).await {
         Ok(_) => {
             Ok(Json(success(String::new())))
