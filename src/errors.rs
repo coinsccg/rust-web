@@ -9,7 +9,7 @@ use crate::models::{fail, success};
 
 #[derive(Debug, thiserror::Error, Serialize)]
 pub enum Error {
-    #[error("Wrong user name or password")]
+    #[error("Error user name or password")]
     UserOrPasswordError,
     #[error("Param invalid")]
     ParamInvalidError,
@@ -36,6 +36,21 @@ pub enum Error {
 impl Error {
     pub fn to_string(self) -> String {
         format!("{}", self)
+    }
+    pub fn to_response(self) -> &'static str {
+        match self {
+            Error::UserOrPasswordError => "用户名或密码错误",
+            Error::ParamInvalidError => "参数不合法",
+            Error::InternalServerError => "服务器内部错误",
+            Error::AddressNotFound => "该地址不存在",
+            Error::AddressAlreadyExists => "该地址已经存在",
+            Error::RequestBadError => "请求错误",
+            Error::ParamTypeError => "请求参数类型错误",
+            Error::DatabaseConnect => "数据库连接错误",
+            Error::EncodeJsonWebTokenError => "jwt生成失败",
+            Error::DecodeJsonWebTokenError => "jwt验证失败",
+            Error::Unknown => "不知名错误"
+        }
     }
 }
 
