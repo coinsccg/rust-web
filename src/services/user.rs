@@ -7,14 +7,15 @@ use crate::errors::Error;
 use crate::auth::{Claims, encode_jwt};
 use crate::models::Password;
 
-type HandlerResult<T, E=Error> = Result<T, E>;
+type ServiceResult<T, E=Error> = Result<T, E>;
 
-pub async fn login_service(pool: &MySqlPool, user: Password) -> HandlerResult<String> {
-    let rows = query(
+/// 登录
+pub async fn login_service(pool: &MySqlPool, user: Password) -> ServiceResult<String> {
+    let row = query(
         "SELECT id FROM users WHERE username = ? AND password = ?",
     ).bind(user.username).bind(user.password).fetch_one(pool).await;
 
-    match rows {
+    match row {
         Ok(rs) => {
             if let Ok(_id) = rs.try_get::<i64, _>("id"){}
         }
@@ -33,9 +34,9 @@ pub async fn login_service(pool: &MySqlPool, user: Password) -> HandlerResult<St
     Ok(token)
 }
 
-
-pub async fn active_user_service(pool: &MySqlPool, parent: String, owner: String) -> HandlerResult<()> {
-    let rows = query(
+/// 激活用户
+pub async fn active_user_service(pool: &MySqlPool, parent: String, owner: String) -> ServiceResult<()> {
+    let row = query(
         "SELECT id FROM points WHERE parent = ? AND owner = ?",
     )
         .bind(parent.clone())
@@ -44,7 +45,7 @@ pub async fn active_user_service(pool: &MySqlPool, parent: String, owner: String
         .await;
 
 
-    match rows {
+    match row {
         Ok(_) => {
             Err(Error::AddressAlreadyExists)
         }
@@ -82,11 +83,17 @@ pub async fn active_user_service(pool: &MySqlPool, parent: String, owner: String
     }
 }
 
-pub async fn add_point_service(pool: &MySqlPool, owner: String, point: i64) -> HandlerResult<()> {
-    let rows = query(
+/// 增加积分
+pub async fn add_point_service(pool: &MySqlPool, owner: String, point: i64) -> ServiceResult<()> {
+    let row = query(
         "UPDATE points SET point = point + ? WHERE owner = ?"
-    ).bind(point).bind(owner).execute(pool).await;
-    match rows {
+    )
+        .bind(point)
+        .bind(owner)
+        .execute(pool)
+        .await;
+
+    match row {
         Ok(rs) => {
             if rs.rows_affected() > 0 {
                 Ok(())
@@ -101,3 +108,23 @@ pub async fn add_point_service(pool: &MySqlPool, owner: String, point: i64) -> H
     }
 }
 
+pub async fn find_balance_service(pool: &MySqlPool, owner: String) -> ServiceResult<i64> {
+    let row = query(
+        "SELECT point FROM points WHERE owner = ?"
+    )
+        .bind(owner)
+        .fetch_one(pool)
+        .await;
+    match row {
+        Ok(rs) => {
+            Ok(rs.get("point"))
+        }
+        Err(sqlx::Error::RowNotFound) => {
+            Err(Error::AddressNotFound)
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Err(Error::InternalServerError)
+        }
+    }
+}

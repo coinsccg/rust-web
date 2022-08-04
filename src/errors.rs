@@ -21,8 +21,8 @@ pub enum Error {
     AddressAlreadyExists,
     #[error("Request data invalid")]
     RequestBadError,
-    #[error("deserialize failed")]
-    DeserializeFail,
+    #[error("Param type invalid")]
+    ParamTypeError,
     #[error("Database connection failed")]
     DatabaseConnect,
     #[error("Failed to encode claims")]
@@ -45,7 +45,7 @@ impl ResponseError for Error {
             Error::UserOrPasswordError => StatusCode::OK,
             Error::ParamInvalidError => StatusCode::OK,
             Error::RequestBadError => StatusCode::OK,
-            Error::DeserializeFail => StatusCode::OK,
+            Error::ParamTypeError => StatusCode::OK,
             Error::DecodeJsonWebTokenError => StatusCode::UNAUTHORIZED,
             Error::AddressNotFound => StatusCode::OK,
             Error::AddressAlreadyExists => StatusCode::OK,

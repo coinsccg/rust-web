@@ -18,6 +18,11 @@ pub struct ActiveUser {
     pub owner: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct QueryAddress {
+    pub owner: String
+}
+
 
 #[derive(Serialize)]
 pub struct Response<T> {
@@ -41,14 +46,6 @@ pub fn fail(msg: String) -> Response<String> {
         msg: msg,
         data: "".to_string(),
     }
-}
-
-
-
-#[derive(Deserialize)]
-pub struct Info {
-    pub user_id: u32,
-    pub friend: String,
 }
 
 
