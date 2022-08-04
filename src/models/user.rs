@@ -26,23 +26,23 @@ pub struct Response<T> {
     pub data: T
 }
 
-impl<T> Response<T> {
-    pub fn success(data: T) -> Self {
-        Response {
-            code: 0,
-            msg: "success".to_string(),
-            data: data,
-        }
-    }
 
-    pub fn fail(msg: String, data: T) -> Self {
-        Response {
-            code: 1,
-            msg: msg,
-            data: data,
-        }
+pub fn success<T>(data: T) -> Response<T> {
+    Response {
+        code: 0,
+        msg: "success".to_string(),
+        data: data,
     }
 }
+
+pub fn fail(msg: String) -> Response<String> {
+    Response {
+        code: 1,
+        msg: msg,
+        data: "".to_string(),
+    }
+}
+
 
 
 #[derive(Deserialize)]
@@ -50,3 +50,5 @@ pub struct Info {
     pub user_id: u32,
     pub friend: String,
 }
+
+

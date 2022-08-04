@@ -1,29 +1,26 @@
 use std::ops::Add;
 use std::time::{SystemTime, Duration};
-use log::info;
+use log::{error, info};
 use sqlx::mysql::MySqlPool;
 use sqlx::{query, Row};
 use crate::errors::Error;
 use crate::auth::{Claims, encode_jwt};
 use crate::models::Password;
 
+type HandlerResult<T, E=Error> = Result<T, E>;
 
-
-type ResponseResult<T, E=Error> = Result<T, E>;
-
-pub async fn login_handler(pool: &MySqlPool, user: Password) -> ResponseResult<String> {
+pub async fn login_service(pool: &MySqlPool, user: Password) -> HandlerResult<String> {
     let rows = query(
         "SELECT id FROM users WHERE username = ? AND password = ?",
     ).bind(user.username).bind(user.password).fetch_one(pool).await;
 
     match rows {
         Ok(rs) => {
-            if let Ok(id) = rs.try_get::<i64, _>("id"){
-                println!("{:?}", id);
-            }
+            if let Ok(_id) = rs.try_get::<i64, _>("id"){}
         }
-        Err(_) => {
-            return Err(Error::LoginError);
+        Err(e) => {
+            error!("{:?}", e);
+            return Err(Error::ParamInvalidError);
         }
     }
 
@@ -37,7 +34,7 @@ pub async fn login_handler(pool: &MySqlPool, user: Password) -> ResponseResult<S
 }
 
 
-pub async fn active_user_handler(pool: &MySqlPool, parent: String, owner: String) -> ResponseResult<()> {
+pub async fn active_user_service(pool: &MySqlPool, parent: String, owner: String) -> HandlerResult<()> {
     let rows = query(
         "SELECT id FROM points WHERE parent = ? AND owner = ?",
     )
@@ -48,9 +45,8 @@ pub async fn active_user_handler(pool: &MySqlPool, parent: String, owner: String
 
 
     match rows {
-        Ok(rw) => {
-            info!("111111111111111111111");
-            Err(Error::UserAlreadyExists)
+        Ok(_) => {
+            Err(Error::AddressAlreadyExists)
         }
         Err(sqlx::Error::RowNotFound) => {
             let timestamp = SystemTime::now()
@@ -70,22 +66,23 @@ pub async fn active_user_handler(pool: &MySqlPool, parent: String, owner: String
 
                         Ok(())
                     } else {
-                        Err(Error::UserNotFound)
+                        Err(Error::AddressNotFound)
                     }
                 }
                 Err(e) =>{
-
-                    Err(Error::DatabaseError)
+                    error!("{:?}", e);
+                    Err(Error::InternalServerError)
                 }
             }
         }
         Err(e) => {
-            Err(Error::DatabaseError)
+            error!("{:?}", e);
+            Err(Error::InternalServerError)
         }
     }
 }
 
-pub async fn add_point_handler(pool: &MySqlPool, owner: String, point: i64) -> ResponseResult<()> {
+pub async fn add_point_service(pool: &MySqlPool, owner: String, point: i64) -> HandlerResult<()> {
     let rows = query(
         "UPDATE points SET point = point + ? WHERE owner = ?"
     ).bind(point).bind(owner).execute(pool).await;
@@ -94,11 +91,12 @@ pub async fn add_point_handler(pool: &MySqlPool, owner: String, point: i64) -> R
             if rs.rows_affected() > 0 {
                 Ok(())
             } else {
-                Err(Error::UserNotFound)
+                Err(Error::AddressNotFound)
             }
         }
         Err(e) =>{
-            Err(Error::DatabaseError)
+            error!("{:?}", e);
+            Err(Error::InternalServerError)
         }
     }
 }
