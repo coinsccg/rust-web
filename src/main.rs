@@ -1,13 +1,14 @@
 pub mod database;
 pub mod route;
-pub mod models;
-pub mod handlers;
+pub mod model;
+pub mod http;
 pub mod auth;
 pub mod errors;
 pub mod constant;
 pub mod server;
-pub mod services;
+pub mod service;
 pub mod parse;
+pub mod dao;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {

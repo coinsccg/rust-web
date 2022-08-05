@@ -1,5 +1,5 @@
 use actix_web::{
-    web::{self, Data},
+    web::Data,
     App,
     HttpServer,
     middleware::Logger

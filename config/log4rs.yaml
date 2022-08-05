@@ -5,9 +5,10 @@ appenders:
     kind: file
     path: "log/info.log"
     encoder:
-      pattern: "[File] {d} - {m}{n}"
+      # d 代表时间 t 代表模块名 l 代表等级 L代表行号 m 代表日志内容 n代表换行
+      pattern: "[File] {d} {l} {t} - {L} - {m}{n}"
 root:
-  level: info
+  level: error
   appenders:
     - file
     - stdout

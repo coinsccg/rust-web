@@ -1,4 +1,4 @@
-use actix_web::{dev::ServiceRequest, web::Bytes, http::header::{AUTHORIZATION, HeaderValue}};
+use actix_web::{dev::ServiceRequest, http::header::{AUTHORIZATION, HeaderValue}};
 use actix_web_httpauth::extractors::{bearer::{BearerAuth, Config}, AuthenticationError};
 use serde::{Serialize, Deserialize};
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
