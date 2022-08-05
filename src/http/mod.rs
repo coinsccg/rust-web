@@ -1,5 +1,6 @@
 pub mod user;
 pub mod filter;
+pub mod parse;
 
 pub use user::admin_login;
 pub use user::get_wallet;

@@ -7,15 +7,14 @@ use actix_web::{
 };
 use sqlx::mysql::MySqlPool;
 use crate::constant;
-use crate::parse::{parse_body, parse_query};
+use crate::http::parse::{parse_body, parse_query};
 use crate::errors::Error;
 use crate::model::{
     Login,
-    success,
-    Response,
     Point,
     ActiveUser
 };
+use crate::response::{Response, success, fail};
 use crate::service;
 
 

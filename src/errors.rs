@@ -1,7 +1,7 @@
 use serde::Serialize;
 use actix_http::StatusCode;
 use actix_web::{error::ResponseError, body::BoxBody, HttpResponse};
-use crate::model::fail;
+use crate::response::fail;
 
 #[derive(Debug, thiserror::Error, Serialize)]
 pub enum Error {
