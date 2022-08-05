@@ -38,7 +38,6 @@ impl Error {
         format!("{}", self)
     }
     pub fn to_response(&self) -> &'static str {
-        // 需要使用&self，否则match self会接受self的所有权， self的所有权会发生移动
         match *self {
             Error::UserOrPasswordError => "用户名或密码错误",
             Error::ParamInvalidError => "参数不合法",
