@@ -1,6 +1,6 @@
 pub mod  user;
 
-pub use user::Password;
+pub use user::Login;
 pub use user::success;
 pub use user::fail;
 pub use user::Point;

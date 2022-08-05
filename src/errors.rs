@@ -9,6 +9,10 @@ pub enum Error {
     UserOrPasswordError,
     #[error("Param invalid")]
     ParamInvalidError,
+    #[error("No input param")]
+    ParamAllNotFound,
+    #[error("Miss param")]
+    ParamMissError,
     #[error("Server internal error")]
     InternalServerError,
     #[error("Address does not exist")]
@@ -38,11 +42,13 @@ impl Error {
         match *self {
             Error::UserOrPasswordError => "用户名或密码错误",
             Error::ParamInvalidError => "参数不合法",
+            Error::ParamAllNotFound => "请输入参数",
+            Error::ParamMissError => "缺少参数",
             Error::InternalServerError => "服务器内部错误",
             Error::AddressNotFound => "该地址不存在",
             Error::AddressAlreadyActivated => "该地址已被激活",
             Error::RequestBadError => "请求错误",
-            Error::ParamTypeError => "请求参数类型错误",
+            Error::ParamTypeError => "参数类型错误",
             Error::DatabaseConnect => "数据库连接错误",
             Error::EncodeJsonWebTokenError => "jwt生成失败",
             Error::DecodeJsonWebTokenError => "jwt验证失败",
@@ -56,6 +62,8 @@ impl ResponseError for Error {
         match *self {
             Error::UserOrPasswordError => StatusCode::OK,
             Error::ParamInvalidError => StatusCode::OK,
+            Error::ParamAllNotFound => StatusCode::OK,
+            Error::ParamMissError => StatusCode::OK,
             Error::RequestBadError => StatusCode::OK,
             Error::ParamTypeError => StatusCode::OK,
             Error::DecodeJsonWebTokenError => StatusCode::UNAUTHORIZED,

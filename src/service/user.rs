@@ -6,14 +6,13 @@ use log::{error, info};
 use sqlx::mysql::MySqlPool;
 use crate::errors::Error;
 use crate::auth::{Claims, encode_jwt};
-use crate::model::Password;
 use crate::dao;
 
 type ServiceResult<T, E=Error> = Result<T, E>;
 
-/// 登录
-pub async fn admin_login(pool: &MySqlPool, user: Password) -> ServiceResult<String> {
-    dao::find_password(pool, user.username, user.password).await?;
+/// 管理员登录
+pub async fn admin_login(pool: &MySqlPool, username: String, password: String) -> ServiceResult<String> {
+    dao::find_password(pool, username, password).await?;
 
     let timestamp = SystemTime::now()
         .add(Duration::from_secs(12000))
