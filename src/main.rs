@@ -1,5 +1,4 @@
 pub mod database;
-pub mod route;
 pub mod model;
 pub mod http;
 pub mod auth;
@@ -9,6 +8,7 @@ pub mod server;
 pub mod service;
 pub mod dao;
 pub mod response;
+pub mod route;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {

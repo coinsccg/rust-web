@@ -3,7 +3,6 @@ use actix_web_httpauth::middleware::HttpAuthentication;
 use crate::auth::bearer_validator;
 use crate::http;
 
-
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/api/v1")
